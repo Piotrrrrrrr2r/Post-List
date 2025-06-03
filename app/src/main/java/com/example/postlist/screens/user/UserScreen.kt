@@ -13,7 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material3.Divider
+
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -80,7 +80,7 @@ fun UserScreen(
     val scrollState = rememberScrollState()
     var isTasksExpanded by remember { mutableStateOf(false) }
 
-    // Initialize osmdroid configuration
+
     val context = LocalContext.current
     Configuration.getInstance().load(context, context.getSharedPreferences("osmdroid", Context.MODE_PRIVATE))
 
@@ -212,11 +212,11 @@ fun UserDetailsCard(user: User, postCount: Int) {
             color = MaterialTheme.colorScheme.secondary
         )
 
-        // Add post count row
+
         DetailRow(
             label = "Posts",
             value = postCount.toString(),
-           // modifier = Modifier.padding(top = 8.dp)
+
         )
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
@@ -248,7 +248,7 @@ fun UserLocationMap(
     modifier: Modifier = Modifier,
     zoomLevel: Double = 4.0
 ) {
-    //val context = LocalContext.current
+
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
@@ -262,7 +262,7 @@ fun UserLocationMap(
                     controller.setZoom(zoomLevel)
                     controller.setCenter(GeoPoint(lat, lng))
 
-                    // Add marker
+
                     val marker = Marker(this).apply {
                         position = GeoPoint(lat, lng)
                         title = userName
@@ -272,7 +272,7 @@ fun UserLocationMap(
                 }
             },
             update = { mapView ->
-                mapView.invalidate() // Force redraw
+                mapView.invalidate()
             }
         )
     }

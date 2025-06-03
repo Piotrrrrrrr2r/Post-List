@@ -13,7 +13,7 @@ interface PostRepository {
     suspend fun getUser(userId: Int): User
     suspend fun getUserTodos(userId: Int): List<ToDo>
     suspend fun getPostsWithUsers(): List<PostWithUser>
-    suspend fun getPostsByUser(userId: Int): List<Post> // New function
+    suspend fun getPostsByUser(userId: Int): List<Post>
 }
 
 class PostRepositoryImpl(private val api: JsonPlaceholderApi) : PostRepository {

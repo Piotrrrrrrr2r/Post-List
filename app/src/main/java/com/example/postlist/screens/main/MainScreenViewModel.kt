@@ -29,7 +29,7 @@ class MainScreenViewModel(private val repository: PostRepository) : ViewModel() 
                         allPosts = data,
                         filteredPosts = data,
                         isLoading = false,
-                        searchQuery = "" // Reset search query when reloading data
+                        searchQuery = ""
                     )
                 }
             } catch (e: Exception) {

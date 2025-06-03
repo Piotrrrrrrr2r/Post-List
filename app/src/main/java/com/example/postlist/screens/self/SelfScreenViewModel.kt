@@ -16,23 +16,14 @@ class SelfScreenViewModel(
     private val userPreferences: UserPreferences
 ) : ViewModel() {
     var firstName by mutableStateOf("")
-    // Remove private set to make it publicly settable
-    // set // This line should be removed or commented out
-
     var lastName by mutableStateOf("")
-    // Remove private set to make it publicly settable
-    // set // This line should be removed or commented out
-
     var profileImageUri by mutableStateOf<Uri?>(null)
-    // Remove private set to make it publicly settable
-    // set // This line should be removed or commented out
-
     var profileImagePath by mutableStateOf<String?>(null)
-        private set // Keep this private as it's only set internally
+        private set
 
     init {
         viewModelScope.launch {
-            // Load saved data
+
             firstName = userPreferences.firstName.first()
             lastName = userPreferences.lastName.first()
             profileImagePath = userPreferences.profileImagePath.first()
@@ -41,11 +32,10 @@ class SelfScreenViewModel(
 
     fun saveUserDetails(context: Context) {
         viewModelScope.launch {
-            // Save text data
+
             userPreferences.saveFirstName(firstName)
             userPreferences.saveLastName(lastName)
 
-            // Save image if selected
             profileImageUri?.let { uri ->
                 val file = saveImageToInternalStorage(context, uri)
                 profileImagePath = file?.absolutePath
