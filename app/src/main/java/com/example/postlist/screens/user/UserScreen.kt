@@ -1,5 +1,6 @@
 package com.example.postlist.screens.user
 
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,11 +23,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.postlist.ErrorContent
 import com.example.postlist.FullScreenLoader
@@ -39,7 +43,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -48,10 +51,17 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.HorizontalDivider
-
+import androidx.compose.ui.draw.clip
+import org.osmdroid.config.Configuration
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,6 +79,10 @@ fun UserScreen(
     val user = uiState.user
     val scrollState = rememberScrollState()
     var isTasksExpanded by remember { mutableStateOf(false) }
+
+    // Initialize osmdroid configuration
+    val context = LocalContext.current
+    Configuration.getInstance().load(context, context.getSharedPreferences("osmdroid", Context.MODE_PRIVATE))
 
     Scaffold(
         topBar = {
@@ -113,7 +127,32 @@ fun UserScreen(
                         message = uiState.error,
                         onRetry = { viewModel.loadUserData() }
                     )
-                    user != null -> UserDetailsCard(user = user)
+                    user != null -> {
+                        UserDetailsCard(
+                            user = user,
+                            postCount = uiState.posts.size
+                        )
+
+                        val lat = user.address.geo.lat.toDoubleOrNull() ?: 0.0
+                        val lng = user.address.geo.lng.toDoubleOrNull() ?: 0.0
+
+                        if (lat != 0.0 || lng != 0.0) {
+                            Text(
+                                "Location",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            UserLocationMap(
+                                lat = lat,
+                                lng = lng,
+                                userName = user.name,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                    }
                 }
                 if (uiState.todos.isNotEmpty()) {
                     Row(
@@ -154,7 +193,7 @@ fun UserScreen(
 }
 
 @Composable
-fun UserDetailsCard(user: User) {
+fun UserDetailsCard(user: User, postCount: Int) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -171,6 +210,13 @@ fun UserDetailsCard(user: User) {
             text = "@${user.username}",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.secondary
+        )
+
+        // Add post count row
+        DetailRow(
+            label = "Posts",
+            value = postCount.toString(),
+           // modifier = Modifier.padding(top = 8.dp)
         )
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
@@ -191,6 +237,44 @@ fun UserDetailsCard(user: User) {
         DetailRow(label = "Street", value = "${user.address.street}, ${user.address.suite}")
         DetailRow(label = "City", value = user.address.city)
         DetailRow(label = "Zipcode", value = user.address.zipcode)
+    }
+}
+
+@Composable
+fun UserLocationMap(
+    lat: Double,
+    lng: Double,
+    userName: String,
+    modifier: Modifier = Modifier,
+    zoomLevel: Double = 4.0
+) {
+    //val context = LocalContext.current
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+    ) {
+        AndroidView(
+            factory = { ctx ->
+                MapView(ctx).apply {
+                    setTileSource(TileSourceFactory.MAPNIK)
+                    minZoomLevel = 3.0
+                    maxZoomLevel = 19.0
+                    controller.setZoom(zoomLevel)
+                    controller.setCenter(GeoPoint(lat, lng))
+
+                    // Add marker
+                    val marker = Marker(this).apply {
+                        position = GeoPoint(lat, lng)
+                        title = userName
+                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                    }
+                    overlays.add(marker)
+                }
+            },
+            update = { mapView ->
+                mapView.invalidate() // Force redraw
+            }
+        )
     }
 }
 
@@ -242,3 +326,4 @@ private fun TodoItem(todo: ToDo) {
         )
     }
 }
+

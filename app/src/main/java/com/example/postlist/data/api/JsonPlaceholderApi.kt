@@ -5,6 +5,7 @@ import com.example.postlist.data.model.ToDo
 import com.example.postlist.data.model.User
 import retrofit2.http.GET
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface JsonPlaceholderApi {
     @GET("posts")
@@ -21,4 +22,9 @@ interface JsonPlaceholderApi {
 
     @GET("users/{userId}/todos")
     suspend fun getUserTodos(@Path("userId") userId: Int): List<ToDo>
+
+    @GET("posts")
+    suspend fun getPostsByUser(
+        @Query("userId") userId: Int
+    ): List<Post>
 }

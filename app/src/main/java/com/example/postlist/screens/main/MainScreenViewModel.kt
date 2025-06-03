@@ -1,4 +1,5 @@
 package com.example.postlist.screens.main
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.postlist.data.model.PostWithUser
@@ -27,7 +28,8 @@ class MainScreenViewModel(private val repository: PostRepository) : ViewModel() 
                     it.copy(
                         allPosts = data,
                         filteredPosts = data,
-                        isLoading = false
+                        isLoading = false,
+                        searchQuery = "" // Reset search query when reloading data
                     )
                 }
             } catch (e: Exception) {
@@ -40,6 +42,24 @@ class MainScreenViewModel(private val repository: PostRepository) : ViewModel() 
             }
         }
     }
+
+
+    fun searchPosts(query: String) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                searchQuery = query,
+                filteredPosts = if (query.isBlank()) {
+                    currentState.allPosts
+                } else {
+                    currentState.allPosts.filter { postWithUser ->
+                        postWithUser.post.title.startsWith(query, ignoreCase = true) ||
+                                postWithUser.user?.name?.startsWith(query, ignoreCase = true) == true ||
+                                postWithUser.user?.username?.startsWith(query, ignoreCase = true) == true
+                    }
+                }
+            )
+        }
+    }
 }
 
 data class MainScreenUiState(
@@ -47,4 +67,5 @@ data class MainScreenUiState(
     val filteredPosts: List<PostWithUser> = emptyList(),
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
-    )
+    val searchQuery: String = ""
+)

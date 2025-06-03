@@ -2,6 +2,7 @@ package com.example.postlist.screens.user
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.postlist.data.model.Post
 import com.example.postlist.data.model.ToDo
 import com.example.postlist.data.model.User
 import com.example.postlist.data.repository.PostRepository
@@ -27,12 +28,16 @@ class UserScreenViewModel(
 
         viewModelScope.launch {
             try {
+                // Load all data sequentially
                 val user = repository.getUser(userId)
                 val todos = repository.getUserTodos(userId)
+                val posts = repository.getPostsByUser(userId)
+
                 _uiState.update {
                     it.copy(
                         user = user,
                         todos = todos,
+                        posts = posts,
                         isLoading = false
                     )
                 }
@@ -51,6 +56,9 @@ class UserScreenViewModel(
 data class UserDetailsUiState(
     val user: User? = null,
     val todos: List<ToDo> = emptyList(),
+    val posts: List<Post> = emptyList(),
     val isLoading: Boolean = true,
-    val error: String? = null
+    val error: String? = null,
+    val mapLoading: Boolean = false,
+    val mapError: String? = null
 )
